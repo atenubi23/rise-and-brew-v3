@@ -1,62 +1,45 @@
+// list_view.dart
 import 'package:flutter/material.dart';
 
-// ======================== MAIN LIST VIEW ========================
-class ListViewWidget extends StatefulWidget {
-  const ListViewWidget({super.key});
+class ListViewPage extends StatefulWidget {
+  const ListViewPage({super.key});
 
   @override
-  State<ListViewWidget> createState() => _ListViewWidgetState();
+  State<ListViewPage> createState() => _ListViewPageState();
 }
 
-class _ListViewWidgetState extends State<ListViewWidget> {
-  // ---- Change this list to test empty state ----
-  List<FieldSummary> fieldSummaries = [
-    const FieldSummary(
-      id: 1,
-      fieldName: 'Field 3 - North Side',
-      date: 'October 20, 2025',
-      time: '10:00 AM',
-      soilMoisture: '4.2 % SOM',
-      phLevel: 'Neutral PH level',
-      status: FieldStatus.good,
-    ),
-    const FieldSummary(
-      id: 2,
-      fieldName: 'Field 3 - North Side',
-      date: 'October 20, 2025',
-      time: '10:00 AM',
-      soilMoisture: '4.2 % SOM',
-      phLevel: 'Neutral PH level',
-      status: FieldStatus.good,
-    ),
-    const FieldSummary(
-      id: 3,
-      fieldName: 'Field 3 - North Side',
-      date: 'October 20, 2025',
-      time: '10:00 AM',
-      soilMoisture: '4.2 % SOM',
-      phLevel: 'Neutral PH level',
-      status: FieldStatus.good,
-    ),
-    const FieldSummary(
-      id: 4,
-      fieldName: 'Field 3 - North Side',
-      date: 'October 20, 2025',
-      time: '10:00 AM',
-      soilMoisture: '4.2 % SOM',
-      phLevel: 'Neutral PH level',
-      status: FieldStatus.good,
-    ),
-    const FieldSummary(
-      id: 5,
-      fieldName: 'Field 3 - North Side',
-      date: 'October 20, 2025',
-      time: '10:00 AM',
-      soilMoisture: '4.2 % SOM',
-      phLevel: 'Neutral PH level',
-      status: FieldStatus.good,
-    ),
-  ];
+class _ListViewPageState extends State<ListViewPage> {
+  int _selectedBottomNavIndex = 2; // List tab selected
+  late List<FieldCard> _cards;
+
+  @override
+  void initState() {
+    super.initState();
+    _cards = fieldCardsData.map((data) => FieldCard.fromJson(data)).toList();
+  }
+
+  void _updateCardStatus(int cardId, StatusType newStatus) {
+    setState(() {
+      final index = _cards.indexWhere((card) => card.id == cardId);
+      if (index != -1) {
+        _cards[index].activeStatus = newStatus;
+      }
+    });
+  }
+
+  void _onAddField() {
+    // TODO: Navigate to add field screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Add Field tapped')),
+    );
+  }
+
+  void _onEditInfo(FieldCard card) {
+    // TODO: Navigate to edit info screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Edit Info for ${card.title}')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,281 +48,176 @@ class _ListViewWidgetState extends State<ListViewWidget> {
       body: SafeArea(
         child: Column(
           children: [
-            const TopStatusBar(),
-            const SizedBox(height: 16),
-            const AddFieldButton(),
-            const SizedBox(height: 16),
-            // Pass the list to the section widget
-            FieldSummaryListSection(fieldSummaries: fieldSummaries),
-            const BottomNavigationSection(),
+            // Top spacing (status bar placeholder)
+            const SizedBox(height: 12),
+            // Main content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    // Add Field button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 36,
+                      child: ElevatedButton.icon(
+                        onPressed: _onAddField,
+                        icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                        label: const Text(
+                          'Add Field',
+                          style: TextStyle(
+                            fontFamily: 'Geist',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Field cards list
+                    ..._cards.map((card) => _buildFieldCard(card)),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-// ======================== TOP STATUS BAR ========================
-class TopStatusBar extends StatelessWidget {
-  const TopStatusBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 413,
-      height: 48.46,
-      margin: const EdgeInsets.symmetric(horizontal: 8.5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(29.74),
-      ),
-    );
-  }
-}
-
-// ======================== ADD FIELD BUTTON ========================
-class AddFieldButton extends StatelessWidget {
-  const AddFieldButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 364,
-      height: 36,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedBottomNavIndex,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.black.withOpacity(0.5),
+        selectedFontSize: 12.8,
+        unselectedFontSize: 12.8,
+        iconSize: 26,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Cam'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'List'),
         ],
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.add, color: Colors.white, size: 16),
-          SizedBox(width: 8),
-          Text(
-            'Add Field',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-        ],
+        onTap: (index) {
+          setState(() {
+            _selectedBottomNavIndex = index;
+          });
+          if (index == 0) {
+            // Navigate to Home
+          } else if (index == 1) {
+            // Navigate to Cam
+          } else if (index == 2) {
+            // Already on List
+          }
+        },
       ),
     );
   }
-}
 
-// ======================== MODELS & ENUMS ========================
-class FieldSummary {
-  final int id;
-  final String fieldName;
-  final String date;
-  final String time;
-  final String soilMoisture;
-  final String phLevel;
-  final FieldStatus status;
-
-  const FieldSummary({
-    required this.id,
-    required this.fieldName,
-    required this.date,
-    required this.time,
-    required this.soilMoisture,
-    required this.phLevel,
-    required this.status,
-  });
-}
-
-enum FieldStatus { good, bad, neutral }
-
-extension FieldStatusExtension on FieldStatus {
-  String get displayName {
-    switch (this) {
-      case FieldStatus.good:
-        return 'Good';
-      case FieldStatus.bad:
-        return 'Bad';
-      case FieldStatus.neutral:
-        return 'Neutral';
-    }
-  }
-}
-
-// ======================== FIELD SUMMARY LIST SECTION (with empty state) ========================
-class FieldSummaryListSection extends StatelessWidget {
-  final List<FieldSummary> fieldSummaries;
-
-  const FieldSummaryListSection({super.key, required this.fieldSummaries});
-
-  static const List<FieldStatus> statusOptions = [
-    FieldStatus.good,
-    FieldStatus.bad,
-    FieldStatus.neutral,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    // If the list is empty, show the empty state
-    if (fieldSummaries.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.inbox_outlined,
-                size: 80,
-                color: Colors.grey.shade400,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No fields added yet',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Tap "Add Field" to get started',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Otherwise show the list of cards
-    return Expanded(
-      child: Container(
-        width: 396,
-        decoration: const BoxDecoration(color: Colors.transparent),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                for (int index = 0; index < fieldSummaries.length; index++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index == fieldSummaries.length - 1 ? 0 : 8,
-                    ),
-                    child: _FieldSummaryCard(
-                      summary: fieldSummaries[index],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ======================== INDIVIDUAL FIELD CARD ========================
-class _FieldSummaryCard extends StatelessWidget {
-  final FieldSummary summary;
-
-  const _FieldSummaryCard({required this.summary});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFieldCard(FieldCard card) {
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color(0xFFE4E4E7)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row: field name + date
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  summary.fieldName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF18181B),
-                  ),
-                ),
-              ),
-              Text(
-                summary.date,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF18181B),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            card.title,
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: Color(0xFF09090B),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          card.date,
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                            color: Color(0xFF09090B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      card.time,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Color(0xFF71717A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      card.description,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                        color: Color(0xFF71717A),
+                        height: 1.4,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          // Time
-          Text(
-            summary.time,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF71717A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Description (Soil Moisture + PH)
-          Text(
-            '${summary.soilMoisture}\n${summary.phLevel}',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF71717A),
-              height: 1.5,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
           const SizedBox(height: 12),
-          // Status buttons + Edit Info button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Status options
+              // Status buttons (Good, Bad, Neutral)
               Row(
-                children: FieldSummaryListSection.statusOptions.map((status) {
-                  final isActive = summary.status == status;
+                children: StatusType.values.map((status) {
+                  final isActive = card.activeStatus == status;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isActive ? Colors.black : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Text(
-                        status.displayName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isActive ? Colors.white : Colors.black87,
+                    child: GestureDetector(
+                      onTap: () => _updateCardStatus(card.id, status),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isActive ? Colors.black : const Color(0xFFF4F4F5),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          status.toString().split('.').last,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: isActive ? Colors.white : const Color(0xFF18181B),
+                          ),
                         ),
                       ),
                     ),
@@ -347,21 +225,22 @@ class _FieldSummaryCard extends StatelessWidget {
                 }).toList(),
               ),
               // Edit Info button
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: const Text(
-                  'Edit Info',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF18181B),
+              GestureDetector(
+                onTap: () => _onEditInfo(card),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4F4F5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'Edit Info',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: Color(0xFF18181B),
+                    ),
                   ),
                 ),
               ),
@@ -373,92 +252,80 @@ class _FieldSummaryCard extends StatelessWidget {
   }
 }
 
-// ======================== BOTTOM NAVIGATION ========================
-class BottomNavigationSection extends StatelessWidget {
-  const BottomNavigationSection({super.key});
+// Data models
+enum StatusType { Good, Bad, Neutral }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 396,
-      height: 83,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _BottomNavItem(
-            label: 'Home',
-            icon: Icons.home_outlined,
-            isActive: true,
-            onTap: () {},
-          ),
-          _BottomNavItem(
-            label: 'Cam',
-            icon: Icons.camera_alt_outlined,
-            isActive: false,
-            onTap: () {},
-          ),
-          _BottomNavItem(
-            label: 'List',
-            icon: Icons.book_outlined,
-            isActive: false,
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
-}
+class FieldCard {
+  final int id;
+  final String title;
+  final String date;
+  final String time;
+  final String description;
+  StatusType activeStatus;
 
-class _BottomNavItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _BottomNavItem({
-    required this.label,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
+  FieldCard({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.time,
+    required this.description,
+    required this.activeStatus,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 83.37,
-        height: 85.5,
-        child: Column(
-          children: [
-            if (isActive)
-              Container(
-                width: 83,
-                height: 4,
-                color: const Color(0xFF187B4D),
-              )
-            else
-              const SizedBox(height: 4),
-            const Spacer(),
-            Icon(
-              icon,
-              size: 26,
-              color: isActive ? const Color(0xFF187B4D) : Colors.black54,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.8,
-                fontWeight: FontWeight.w300,
-                color: isActive ? Colors.black : Colors.black.withOpacity(0.5),
-              ),
-            ),
-            const Spacer(),
-          ],
-        ),
+  factory FieldCard.fromJson(Map<String, dynamic> json) {
+    return FieldCard(
+      id: json['id'],
+      title: json['title'],
+      date: json['date'],
+      time: json['time'],
+      description: json['description'],
+      activeStatus: StatusType.values.firstWhere(
+            (e) => e.toString().split('.').last == json['activeStatus'],
       ),
     );
   }
 }
+
+// Sample data (matching the React example)
+final List<Map<String, dynamic>> fieldCardsData = [
+  {
+    'id': 1,
+    'title': 'Field 3 - North Side',
+    'date': 'October 20, 2025',
+    'time': '10:00 AM',
+    'description': '4.2 % SOM\nNeutral PH level',
+    'activeStatus': 'Good',
+  },
+  {
+    'id': 2,
+    'title': 'Field 3 - North Side',
+    'date': 'October 20, 2025',
+    'time': '10:00 AM',
+    'description': '4.2 % SOM\nNeutral PH level',
+    'activeStatus': 'Good',
+  },
+  {
+    'id': 3,
+    'title': 'Field 3 - North Side',
+    'date': 'October 20, 2025',
+    'time': '10:00 AM',
+    'description': '4.2 % SOM\nNeutral PH level',
+    'activeStatus': 'Good',
+  },
+  {
+    'id': 4,
+    'title': 'Field 3 - North Side',
+    'date': 'October 20, 2025',
+    'time': '10:00 AM',
+    'description': '4.2 % SOM\nNeutral PH level',
+    'activeStatus': 'Good',
+  },
+  {
+    'id': 5,
+    'title': 'Field 3 - North Side',
+    'date': 'October 20, 2025',
+    'time': '10:00 AM',
+    'description': '4.2 % SOM\nNeutral PH level',
+    'activeStatus': 'Bad',
+  },
+];
