@@ -1,5 +1,6 @@
 // ph_input.dart
 import 'package:flutter/material.dart';
+import 'result_page.dart'; // Import the result page
 
 class PhInputPage extends StatefulWidget {
   const PhInputPage({super.key});
@@ -42,10 +43,26 @@ class _PhInputPageState extends State<PhInputPage> {
   }
 
   void _onViewResults() {
-    // Navigate to results screen (replace with your actual screen)
-    // Example: Navigator.push(context, MaterialPageRoute(builder: (_) => ResultsPage(ph: _phController.text, status: _selectedStatus)));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('View Results: pH=${_phController.text}, status=$_selectedStatusLabel')),
+    // Get pH value (default to empty string if not entered)
+    String phValue = _phController.text.trim();
+    if (phValue.isEmpty) {
+      // Optionally show a warning
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a pH level')),
+      );
+      return;
+    }
+
+    // Navigate to ResultPage with the pH and status data
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultPage(
+          phLevel: phValue,
+          // You can also pass the status label if needed
+          // soilType, somLevel, etc. can be passed later or use default values
+        ),
+      ),
     );
   }
 
@@ -56,16 +73,13 @@ class _PhInputPageState extends State<PhInputPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Status bar placeholder (optional)
             const SizedBox(height: 12),
-            // Main content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Back button
                     GestureDetector(
                       onTap: _onBackPressed,
                       child: const Row(
@@ -86,7 +100,6 @@ class _PhInputPageState extends State<PhInputPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Card container
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -99,7 +112,6 @@ class _PhInputPageState extends State<PhInputPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Description
                             const Text(
                               'You\'re almost there! Please input the pH level of your soil for more accurate analysis.',
                               style: TextStyle(
@@ -111,7 +123,6 @@ class _PhInputPageState extends State<PhInputPage> {
                               ),
                             ),
                             const SizedBox(height: 30),
-                            // pH input field
                             const Text(
                               'Enter pH Level here :',
                               style: TextStyle(
@@ -159,7 +170,6 @@ class _PhInputPageState extends State<PhInputPage> {
                               },
                             ),
                             const SizedBox(height: 24),
-                            // Status dropdown
                             const Text(
                               'Status (Auto)',
                               style: TextStyle(
@@ -209,7 +219,6 @@ class _PhInputPageState extends State<PhInputPage> {
                               ),
                             ),
                             const SizedBox(height: 32),
-                            // Action buttons
                             Column(
                               children: [
                                 SizedBox(
@@ -284,24 +293,14 @@ class _PhInputPageState extends State<PhInputPage> {
         unselectedFontSize: 12.8,
         iconSize: 26,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt),
-            label: 'Cam',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book),
-            label: 'List',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Cam'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'List'),
         ],
         onTap: (index) {
           setState(() {
             _selectedBottomNavIndex = index;
           });
-          // Handle navigation based on index
           if (index == 0) {
             // Navigate to Home
           } else if (index == 1) {
