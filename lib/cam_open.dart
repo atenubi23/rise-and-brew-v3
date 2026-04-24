@@ -1,10 +1,8 @@
-// cam_open.dart
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'homescreen_page.dart';
 import 'loading_screen.dart';
-import 'som_classifier.dart'
 
 class CamOpen extends StatefulWidget {
   const CamOpen({super.key});
@@ -16,18 +14,15 @@ class CamOpen extends StatefulWidget {
 class _CamOpenState extends State<CamOpen> {
   CameraController? _cameraController;
   bool _isCameraReady = false;
-  final Classifier _classifier = Classifier();
 
   @override
   void initState() {
     super.initState();
     _initCamera();
-    _classifier.load();
   }
 
   Future<void> _initCamera() async {
     final status = await Permission.camera.request();
-    // Check mounted before using context
     if (!mounted) return;
     if (status != PermissionStatus.granted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -38,23 +33,30 @@ class _CamOpenState extends State<CamOpen> {
 
     final cameras = await availableCameras();
     if (cameras.isEmpty) return;
+
+    // Pwedeng palitan ang cameras.first ng cameras[0] (likod) o cameras[1] (harap)
     final firstCamera = cameras.first;
 
     _cameraController = CameraController(
       firstCamera,
       ResolutionPreset.medium,
+      enableAudio: false, // Opsyonal: para hindi humingi ng mic permission
     );
-    await _cameraController!.initialize();
-    if (!mounted) return;
-    setState(() {
-      _isCameraReady = true;
-    });
+
+    try {
+      await _cameraController!.initialize();
+      if (!mounted) return;
+      setState(() {
+        _isCameraReady = true;
+      });
+    } catch (e) {
+      print("Camera Error: $e");
+    }
   }
 
   @override
   void dispose() {
     _cameraController?.dispose();
-    _classifier.dispose();
     super.dispose();
   }
 
@@ -63,60 +65,61 @@ class _CamOpenState extends State<CamOpen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Camera'),
+        title: const Text('Capture Soil Sample'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const HomeScreenPage()),
-              );
-            },
-          ),
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isCameraReady && _cameraController != null
-          ? CameraPreview(_cameraController!)
+          ? Center(
+        child: CameraPreview(_cameraController!),
+      )
           : const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(color: Colors.white),
             SizedBox(height: 16),
-            Text('Initializing camera...'),
+            Text(
+              'Initializing camera...',
+              style: TextStyle(color: Colors.white),
+            ),
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         onPressed: () async {
+          // Check kung ready ang camera
           if (_cameraController == null || !_cameraController!.value.isInitialized) return;
 
           try {
+            // 1. Kumuha ng litrato
             final photo = await _cameraController!.takePicture();
-
-            // ← DITO ang inference, simple na lang
-            final result = await _classifier.classify(photo.path);
 
             if (!mounted) return;
 
-            Navigator.push(
+            // 2. Pumunta sa LoadingScreen at IPASA ang path ng image
+            // PushReplacement para hindi na makabalik sa camera via back button habang naglo-load
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => LoadingScreen(result: result),
+                builder: (_) => LoadingScreen(imagePath: photo.path),
               ),
             );
-
           } catch (e) {
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: $e')),
+              SnackBar(content: Text('Error taking photo: $e')),
             );
           }
         },
-        child: const Icon(Icons.camera),
+        child: const Icon(Icons.camera_alt, size: 28),
       ),
     );
   }
