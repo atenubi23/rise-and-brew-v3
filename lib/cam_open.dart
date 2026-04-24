@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'homescreen_page.dart';
+import 'loading_screen.dart';
+import 'som_classifier.dart'
 
 class CamOpen extends StatefulWidget {
   const CamOpen({super.key});
@@ -14,11 +16,13 @@ class CamOpen extends StatefulWidget {
 class _CamOpenState extends State<CamOpen> {
   CameraController? _cameraController;
   bool _isCameraReady = false;
+  final Classifier _classifier = Classifier();
 
   @override
   void initState() {
     super.initState();
     _initCamera();
+    _classifier.load();
   }
 
   Future<void> _initCamera() async {
@@ -50,6 +54,7 @@ class _CamOpenState extends State<CamOpen> {
   @override
   void dispose() {
     _cameraController?.dispose();
+    _classifier.dispose();
     super.dispose();
   }
 
@@ -85,20 +90,29 @@ class _CamOpenState extends State<CamOpen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(// Camera button
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+
           try {
             final photo = await _cameraController!.takePicture();
-            // Check mounted before showing SnackBar
+
+            // ← DITO ang inference, simple na lang
+            final result = await _classifier.classify(photo.path);
+
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Photo saved at ${photo.path}')),
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoadingScreen(result: result),
+              ),
             );
+
           } catch (e) {
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error taking photo: $e')),
+              SnackBar(content: Text('Error: $e')),
             );
           }
         },
