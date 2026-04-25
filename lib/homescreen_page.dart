@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'cam_open.dart';
-import 'list_view.dart'; // ← import
+import 'list_view.dart';
+import 'database_helper.dart';
 
 class HomeScreenPage extends StatefulWidget {
-  final int initialIndex; // ← para makapag-navigate papunta dito with a tab selected
+  final int initialIndex;
   const HomeScreenPage({super.key, this.initialIndex = 0});
 
   @override
@@ -112,7 +112,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             SizedBox(height: screenHeight * 0.005),
                             Text(
                               'Rise & Brew',
-                              style: GoogleFonts.inter(
+                              style: TextStyle(
+                                fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
                                 fontSize: screenWidth * 0.032,
                                 color: Colors.white,
@@ -126,7 +127,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                               child: Text(
                                 "Hi! Let's keep your goals blooming today.",
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
                                   fontSize: screenWidth * 0.035,
                                   color: Colors.white,
@@ -177,7 +179,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             cameraReady: _cameraReady,
                             cameraController: _cameraController,
                           ),
-                          const ListViewWidget(), // ← real list view na
+                          const ListViewWidget(),
                         ],
                       ),
                     ),
@@ -212,7 +214,6 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     return GestureDetector(
       onTap: () {
         if (index == 1) {
-          // Cam → push CamOpen as before
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CamOpen()),
@@ -247,7 +248,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
             SizedBox(height: screenHeight * 0.005),
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: TextStyle(
+                fontFamily: 'Poppins',
                 fontWeight: FontWeight.w300,
                 fontSize: screenWidth * 0.032,
                 color: isActive
@@ -264,98 +266,202 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
 }
 
 // ─────────────────────────────────────────
-// HOME VIEW
+// HOME VIEW — latest 3 records from DB
 // ─────────────────────────────────────────
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  List<SoilResult> _recentResults = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecent();
+  }
+
+  Future<void> _loadRecent() async {
+    final all = await DatabaseHelper.instance.getAllResults();
+    setState(() {
+      _recentResults = all.reversed.take(3).toList();
+      _isLoading = false;
+    });
+  }
+
+  Color _getPredictionColor(String prediction) {
+    switch (prediction.toLowerCase()) {
+      case 'highly sufficient':   return const Color(0xFF16A34A);
+      case 'sufficient':          return const Color(0xFF2563EB);
+      case 'slightly sufficient': return const Color(0xFFD97706);
+      case 'not sufficient':      return const Color(0xFFDC2626);
+      default:                    return Colors.grey;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-      itemCount: fieldCards.length,
-      itemBuilder: (context, index) {
-        final card = fieldCards[index];
-        return Padding(
-          padding: EdgeInsets.only(bottom: screenHeight * 0.01),
-          child: Card(
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFE8E9E9)),
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF187B4D)),
+      );
+    }
+
+    if (_recentResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.landscape_outlined,
+                size: 64, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No field records yet',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade400,
+                fontFamily: 'Inter',
+              ),
             ),
-            elevation: 0,
-            color: Colors.white,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.05,
-                vertical: screenHeight * 0.02,
+            const SizedBox(height: 8),
+            Text(
+              'Scan a soil sample to get started',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade400,
+                fontFamily: 'Inter',
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: screenWidth * 0.09,
-                        height: screenWidth * 0.09,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF187B4D).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10.89),
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.02),
-                      Expanded(
-                        child: Text(
-                          card.name,
-                          style: GoogleFonts.dmSans(
-                            fontSize: screenWidth * 0.035,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.01),
-                  Text(
-                    '${card.som}\n${card.ph}\n${card.date}',
-                    style: GoogleFonts.dmSans(
-                      fontSize: screenWidth * 0.03,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF908BA6),
-                      height: 1.67,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.01),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'View details',
-                        style: GoogleFonts.inter(
-                          fontSize: screenWidth * 0.03,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.01),
-                      Icon(
-                        Icons.arrow_downward,
-                        size: screenWidth * 0.045,
-                        color: Colors.black,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Recents Header ──
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04,
+            vertical: screenHeight * 0.01,
+          ),
+          child: Text(
+            'Recents',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+              fontSize: screenWidth * 0.04,
+              color: Colors.black,
             ),
           ),
-        );
-      },
+        ),
+
+        // ── List ──
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+            itemCount: _recentResults.length,
+            itemBuilder: (context, index) {
+              final result = _recentResults[index];
+              final predColor = _getPredictionColor(result.prediction);
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: screenHeight * 0.01),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    side: const BorderSide(color: Color(0xFFE8E9E9)),
+                  ),
+                  elevation: 0,
+                  color: Colors.white,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.05,
+                      vertical: screenHeight * 0.02,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: screenWidth * 0.09,
+                              height: screenWidth * 0.09,
+                              decoration: BoxDecoration(
+                                color: predColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10.89),
+                              ),
+                              child: Icon(
+                                Icons.grass,
+                                size: screenWidth * 0.05,
+                                color: predColor,
+                              ),
+                            ),
+                            SizedBox(width: screenWidth * 0.02),
+                            Expanded(
+                              child: Text(
+                                result.farmName,
+                                style: TextStyle(
+                                  fontFamily: 'DMSans',
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        Text(
+                          'SOM : ${result.prediction}\npH    : ${result.phLevel} (${result.phStatus})\n${result.date}',
+                          style: TextStyle(
+                            fontFamily: 'DMSans',
+                            fontSize: screenWidth * 0.03,
+                            fontWeight: FontWeight.normal,
+                            color: const Color(0xFF908BA6),
+                            height: 1.67,
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              'View details',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: screenWidth * 0.03,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(width: screenWidth * 0.01),
+                            Icon(
+                              Icons.arrow_downward,
+                              size: screenWidth * 0.045,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -390,51 +496,3 @@ class CameraViewWidget extends StatelessWidget {
     return CameraPreview(cameraController!);
   }
 }
-
-// ─────────────────────────────────────────
-// DATA MODELS
-// ─────────────────────────────────────────
-class FieldCard {
-  final int id;
-  final String name;
-  final String som;
-  final String ph;
-  final String date;
-  final bool isLast;
-
-  FieldCard({
-    required this.id,
-    required this.name,
-    required this.som,
-    required this.ph,
-    required this.date,
-    required this.isLast,
-  });
-}
-
-final List<FieldCard> fieldCards = [
-  FieldCard(
-    id: 1,
-    name: 'North Field',
-    som: '4.2 % SOM',
-    ph: 'Neutral PH level',
-    date: 'Oct. 25 2025',
-    isLast: false,
-  ),
-  FieldCard(
-    id: 2,
-    name: 'North Field',
-    som: '4.2 % SOM',
-    ph: 'Neutral PH level',
-    date: 'Oct. 25 2025',
-    isLast: false,
-  ),
-  FieldCard(
-    id: 3,
-    name: 'North Field',
-    som: '4.2 % SOM',
-    ph: 'Neutral PH level',
-    date: 'Oct. 25 2025',
-    isLast: true,
-  ),
-];

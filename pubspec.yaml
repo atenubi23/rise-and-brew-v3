@@ -35,4 +35,22 @@ flutter:
     - assets/som_labels.txt
     - assets/ph_labels.txt
     - assets/som_model.tflite
+    - assets/fonts/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
+          weight: 700
+
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans_18pt-Regular.ttf
+
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
 

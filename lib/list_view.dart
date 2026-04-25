@@ -338,9 +338,6 @@ class _ListViewWidgetState extends State<ListViewWidget> {
                   ? _buildEmptyState()
                   : _buildGalleryGrid(),
             ),
-
-            // ── Bottom Nav ──
-            _buildBottomNav(context),
           ],
         ),
       ),
@@ -479,50 +476,6 @@ class _ListViewWidgetState extends State<ListViewWidget> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ── Bottom Nav (functional) ──
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      width: 396,
-      height: 83,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildNavItem(
-            context,
-            icon: Icons.home,
-            label: 'Home',
-            isActive: false,
-            onTap: () => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const HomeScreenPage(initialIndex: 0),
-              ),
-                  (route) => false,
-            ),
-          ),
-          _buildNavItem(
-            context,
-            icon: Icons.camera_alt,
-            label: 'Cam',
-            isActive: false,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CamOpen()),
-            ),
-          ),
-          _buildNavItem(
-            context,
-            icon: Icons.menu_book,
-            label: 'List',
-            isActive: true,
-            onTap: () {}, // already here
-          ),
-        ],
       ),
     );
   }
