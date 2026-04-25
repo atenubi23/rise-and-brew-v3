@@ -2,6 +2,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
+import 'homescreen_page.dart';
+import 'cam_open.dart';
 
 class ListViewWidget extends StatefulWidget {
   const ListViewWidget({super.key});
@@ -96,15 +98,18 @@ class _ListViewWidgetState extends State<ListViewWidget> {
             // ── SOM Prediction ──
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              padding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
               decoration: BoxDecoration(
                 color: predColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: predColor.withValues(alpha: 0.3)),
+                border:
+                Border.all(color: predColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Text(predEmoji, style: const TextStyle(fontSize: 22)),
+                  Text(predEmoji,
+                      style: const TextStyle(fontSize: 22)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -152,7 +157,8 @@ class _ListViewWidgetState extends State<ListViewWidget> {
                   children: [
                     const Text(
                       'Confidence',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF71717A)),
+                      style: TextStyle(
+                          fontSize: 11, color: Color(0xFF71717A)),
                     ),
                     Text(
                       '${confidence.toStringAsFixed(1)}%',
@@ -171,7 +177,8 @@ class _ListViewWidgetState extends State<ListViewWidget> {
                     value: (confidence / 100).clamp(0.0, 1.0),
                     minHeight: 6,
                     backgroundColor: const Color(0xFFF4F4F5),
-                    valueColor: AlwaysStoppedAnimation<Color>(predColor),
+                    valueColor:
+                    AlwaysStoppedAnimation<Color>(predColor),
                   ),
                 ),
               ],
@@ -181,14 +188,16 @@ class _ListViewWidgetState extends State<ListViewWidget> {
             // ── pH Info ──
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              padding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFFF4F4F5),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.water_drop, size: 18, color: Color(0xFF2563EB)),
+                  const Icon(Icons.water_drop,
+                      size: 18, color: Color(0xFF2563EB)),
                   const SizedBox(width: 8),
                   Text(
                     'pH Level: ${result.phLevel} — ${result.phStatus}',
@@ -207,7 +216,8 @@ class _ListViewWidgetState extends State<ListViewWidget> {
             // ── Coffee Suitability ──
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              padding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               decoration: BoxDecoration(
                 color: result.isSuitable
                     ? const Color(0xFFE8F5E9)
@@ -281,7 +291,7 @@ class _ListViewWidgetState extends State<ListViewWidget> {
         child: Column(
           children: [
 
-            // ── Add Field Button (design unchanged) ──
+            // ── Add Field Button ──
             const SizedBox(height: 16),
             Container(
               width: 364,
@@ -329,15 +339,15 @@ class _ListViewWidgetState extends State<ListViewWidget> {
                   : _buildGalleryGrid(),
             ),
 
-            // ── Bottom Nav (design unchanged) ──
-            _buildBottomNav(),
+            // ── Bottom Nav ──
+            _buildBottomNav(context),
           ],
         ),
       ),
     );
   }
 
-  // ── Empty State (design unchanged) ──
+  // ── Empty State ──
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -473,8 +483,8 @@ class _ListViewWidgetState extends State<ListViewWidget> {
     );
   }
 
-  // ── Bottom Nav (design unchanged) ──
-  Widget _buildBottomNav() {
+  // ── Bottom Nav (functional) ──
+  Widget _buildBottomNav(BuildContext context) {
     return Container(
       width: 396,
       height: 83,
@@ -482,45 +492,81 @@ class _ListViewWidgetState extends State<ListViewWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildNavItem(Icons.home, 'Home', false),
-          _buildNavItem(Icons.camera_alt, 'Cam', false),
-          _buildNavItem(Icons.menu_book, 'List', true),
+          _buildNavItem(
+            context,
+            icon: Icons.home,
+            label: 'Home',
+            isActive: false,
+            onTap: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const HomeScreenPage(initialIndex: 0),
+              ),
+                  (route) => false,
+            ),
+          ),
+          _buildNavItem(
+            context,
+            icon: Icons.camera_alt,
+            label: 'Cam',
+            isActive: false,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CamOpen()),
+            ),
+          ),
+          _buildNavItem(
+            context,
+            icon: Icons.menu_book,
+            label: 'List',
+            isActive: true,
+            onTap: () {}, // already here
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return SizedBox(
-      width: 83.37,
-      height: 85.5,
-      child: Column(
-        children: [
-          if (isActive)
-            Container(width: 83, height: 4, color: const Color(0xFF187B4D))
-          else
-            const SizedBox(height: 4),
-          const Spacer(),
-          Icon(
-            icon,
-            size: 26,
-            color: isActive
-                ? const Color(0xFF187B4D)
-                : Colors.black.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.8,
-              fontWeight: FontWeight.w300,
+  Widget _buildNavItem(
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required bool isActive,
+        required VoidCallback onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 83.37,
+        height: 85.5,
+        child: Column(
+          children: [
+            if (isActive)
+              Container(width: 83, height: 4, color: const Color(0xFF187B4D))
+            else
+              const SizedBox(height: 4),
+            const Spacer(),
+            Icon(
+              icon,
+              size: 26,
               color: isActive
-                  ? Colors.black
+                  ? const Color(0xFF187B4D)
                   : Colors.black.withValues(alpha: 0.5),
             ),
-          ),
-          const Spacer(),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.8,
+                fontWeight: FontWeight.w300,
+                color: isActive
+                    ? Colors.black
+                    : Colors.black.withValues(alpha: 0.5),
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }

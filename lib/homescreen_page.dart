@@ -4,22 +4,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'cam_open.dart';
+import 'list_view.dart'; // ← import
 
 class HomeScreenPage extends StatefulWidget {
-  const HomeScreenPage({super.key});
+  final int initialIndex; // ← para makapag-navigate papunta dito with a tab selected
+  const HomeScreenPage({super.key, this.initialIndex = 0});
 
   @override
   State<HomeScreenPage> createState() => _HomeScreenPageState();
 }
 
 class _HomeScreenPageState extends State<HomeScreenPage> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   CameraController? _cameraController;
   bool _cameraReady = false;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _initCamera();
   }
 
@@ -60,8 +63,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final topSectionHeight = screenHeight * 0.35; // ~35% for top section
-    final bottomSheetHeight = screenHeight * 0.65; // ~65% for bottom sheet
+    final topSectionHeight = screenHeight * 0.35;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -70,7 +72,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
         height: screenHeight,
         child: Stack(
           children: [
-            // Top image section
+            // ── Top image section ──
             Positioned(
               top: 0,
               left: 0,
@@ -119,7 +121,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             ),
                             SizedBox(height: screenHeight * 0.02),
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.1),
                               child: Text(
                                 "Hi! Let's keep your goals blooming today.",
                                 textAlign: TextAlign.center,
@@ -139,9 +142,10 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                 ),
               ),
             ),
-            // Bottom sheet
+
+            // ── Bottom sheet ──
             Positioned(
-              top: topSectionHeight - 20, // Overlap for better design
+              top: topSectionHeight - 20,
               left: 0,
               right: 0,
               bottom: 0,
@@ -162,6 +166,8 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                       height: screenHeight * 0.003,
                     ),
                     SizedBox(height: screenHeight * 0.01),
+
+                    // ── Page content ──
                     Expanded(
                       child: IndexedStack(
                         index: _selectedIndex,
@@ -171,11 +177,12 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                             cameraReady: _cameraReady,
                             cameraController: _cameraController,
                           ),
-                          const ListViewPlaceholder(),
+                          const ListViewWidget(), // ← real list view na
                         ],
                       ),
                     ),
-                    // Bottom navigation
+
+                    // ── Bottom Nav ──
                     Container(
                       width: screenWidth,
                       height: screenHeight * 0.105,
@@ -199,19 +206,19 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index, double screenWidth, double screenHeight) {
+  Widget _buildNavItem(IconData icon, String label, int index,
+      double screenWidth, double screenHeight) {
     final isActive = _selectedIndex == index;
     return GestureDetector(
       onTap: () {
         if (index == 1) {
+          // Cam → push CamOpen as before
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CamOpen()),
           );
         } else {
-          setState(() {
-            _selectedIndex = index;
-          });
+          setState(() => _selectedIndex = index);
         }
       },
       child: Container(
@@ -256,7 +263,9 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
   }
 }
 
-// ----- Home View -----
+// ─────────────────────────────────────────
+// HOME VIEW
+// ─────────────────────────────────────────
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -351,7 +360,9 @@ class HomeView extends StatelessWidget {
   }
 }
 
-// ----- Camera View Widget (live preview) -----
+// ─────────────────────────────────────────
+// CAMERA VIEW WIDGET
+// ─────────────────────────────────────────
 class CameraViewWidget extends StatelessWidget {
   final bool cameraReady;
   final CameraController? cameraController;
@@ -380,29 +391,9 @@ class CameraViewWidget extends StatelessWidget {
   }
 }
 
-// ----- List View Placeholder -----
-class ListViewPlaceholder extends StatelessWidget {
-  const ListViewPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Center(
-      child: Text(
-        'List Screen\n(Coming soon)',
-        textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(
-          fontSize: screenWidth * 0.045,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF908BA6),
-        ),
-      ),
-    );
-  }
-}
-
-// ----- Data Models -----
+// ─────────────────────────────────────────
+// DATA MODELS
+// ─────────────────────────────────────────
 class FieldCard {
   final int id;
   final String name;
