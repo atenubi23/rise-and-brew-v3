@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'homescreen_page.dart';
 import 'loading_screen.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CamOpen extends StatefulWidget {
   const CamOpen({super.key});
@@ -91,35 +92,65 @@ class _CamOpenState extends State<CamOpen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        onPressed: () async {
-          // Check kung ready ang camera
-          if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
 
-          try {
-            // 1. Kumuha ng litrato
-            final photo = await _cameraController!.takePicture();
+            // ── Gallery Button ──
+            FloatingActionButton(
+              heroTag: 'gallery',
+              backgroundColor: Colors.white24,
+              foregroundColor: Colors.white,
+              onPressed: () async {
+                final picked = await ImagePicker().pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 85,
+                );
+                if (picked == null) return;
+                if (!mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LoadingScreen(imagePath: picked.path),
+                  ),
+                );
+              },
+              child: const Icon(Icons.photo_library, size: 24),
+            ),
 
-            if (!mounted) return;
+            const SizedBox(width: 24),
 
-            // 2. Pumunta sa LoadingScreen at IPASA ang path ng image
-            // PushReplacement para hindi na makabalik sa camera via back button habang naglo-load
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LoadingScreen(imagePath: photo.path),
-              ),
-            );
-          } catch (e) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error taking photo: $e')),
-            );
-          }
-        },
-        child: const Icon(Icons.camera_alt, size: 28),
+            // ── Camera Button (original) ──
+            FloatingActionButton(
+              heroTag: 'camera',
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              onPressed: () async {
+                if (_cameraController == null ||
+                    !_cameraController!.value.isInitialized) return;
+                try {
+                  final photo = await _cameraController!.takePicture();
+                  if (!mounted) return;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoadingScreen(imagePath: photo.path),
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error taking photo: $e')),
+                  );
+                }
+              },
+              child: const Icon(Icons.camera_alt, size: 28),
+            ),
+
+          ],
+        ),
       ),
     );
   }

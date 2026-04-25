@@ -1,4 +1,3 @@
-// homescreen_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,20 +58,26 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final topSectionHeight = screenHeight * 0.35; // ~35% for top section
+    final bottomSheetHeight = screenHeight * 0.65; // ~65% for bottom sheet
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SizedBox(
-        width: 412,
-        height: 917,
+        width: screenWidth,
+        height: screenHeight,
         child: Stack(
           children: [
             // Top image section
             Positioned(
               top: 0,
               left: 0,
+              right: 0,
               child: Container(
-                width: 412,
-                height: 323,
+                width: screenWidth,
+                height: topSectionHeight,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -84,44 +89,50 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                   children: [
                     Image.asset(
                       'assets/image_10.png',
-                      width: 412,
-                      height: 290,
+                      width: screenWidth,
+                      height: topSectionHeight * 0.9,
                       fit: BoxFit.cover,
                     ),
                     Positioned(
-                      top: 87,
-                      left: 62,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/logo_1.png',
-                            width: 107,
-                            height: 30,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Rise & Brew',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.white,
-                              letterSpacing: 0.12,
+                      top: topSectionHeight * 0.25,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/logo_1.png',
+                              width: screenWidth * 0.25,
+                              height: screenHeight * 0.04,
+                              fit: BoxFit.contain,
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "Hi! Let's keep your goals blooming today.",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                              color: Colors.white,
-                              height: 20 / 14,
+                            SizedBox(height: screenHeight * 0.005),
+                            Text(
+                              'Rise & Brew',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: screenWidth * 0.032,
+                                color: Colors.white,
+                                letterSpacing: 0.12,
+                              ),
                             ),
-                          ),
-                        ],
+                            SizedBox(height: screenHeight * 0.02),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                              child: Text(
+                                "Hi! Let's keep your goals blooming today.",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: screenWidth * 0.035,
+                                  color: Colors.white,
+                                  height: 1.43,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -130,11 +141,11 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
             ),
             // Bottom sheet
             Positioned(
-              top: 260,
-              left: -1,
+              top: topSectionHeight - 20, // Overlap for better design
+              left: 0,
+              right: 0,
+              bottom: 0,
               child: Container(
-                width: 413,
-                height: 656,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -144,13 +155,13 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                 ),
                 child: Column(
                   children: [
-                    const SizedBox(height: 17),
+                    SizedBox(height: screenHeight * 0.015),
                     SvgPicture.asset(
                       'assets/line_6.svg',
-                      width: 141,
-                      height: 3,
+                      width: screenWidth * 0.34,
+                      height: screenHeight * 0.003,
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: screenHeight * 0.01),
                     Expanded(
                       child: IndexedStack(
                         index: _selectedIndex,
@@ -166,15 +177,15 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     ),
                     // Bottom navigation
                     Container(
-                      width: 396,
-                      height: 83,
+                      width: screenWidth,
+                      height: screenHeight * 0.105,
                       color: Colors.white,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildNavItem(Icons.home, 'Home', 0),
-                          _buildNavItem(Icons.camera_alt, 'Cam', 1),
-                          _buildNavItem(Icons.menu_book, 'List', 2),
+                          _buildNavItem(Icons.home, 'Home', 0, screenWidth, screenHeight),
+                          _buildNavItem(Icons.camera_alt, 'Cam', 1, screenWidth, screenHeight),
+                          _buildNavItem(Icons.menu_book, 'List', 2, screenWidth, screenHeight),
                         ],
                       ),
                     ),
@@ -188,51 +199,50 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index, double screenWidth, double screenHeight) {
     final isActive = _selectedIndex == index;
     return GestureDetector(
       onTap: () {
-        if(index ==1){
-          Navigator.push( // Kapag Cam (index 1) ang pinindot, lilipat sa cam_open.dart
+        if (index == 1) {
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CamOpen()),
           );
-        }else{
+        } else {
           setState(() {
             _selectedIndex = index;
           });
         }
-
       },
       child: Container(
-        width: 83.37,
-        height: 85.5,
+        width: screenWidth * 0.32,
+        height: screenHeight * 0.11,
         color: Colors.white,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (isActive)
               Container(
-                width: 83,
-                height: 4,
+                width: screenWidth * 0.2,
+                height: screenHeight * 0.004,
                 color: const Color(0xFF187B4D),
               )
             else
-              const SizedBox(height: 4),
+              SizedBox(height: screenHeight * 0.004),
             const Spacer(),
             Icon(
               icon,
-              size: 26,
+              size: screenWidth * 0.065,
               color: isActive
                   ? const Color(0xFF187B4D)
                   : Colors.black.withValues(alpha: 0.5),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: screenHeight * 0.005),
             Text(
               label,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w300,
-                fontSize: 12.8,
+                fontSize: screenWidth * 0.032,
                 color: isActive
                     ? Colors.black
                     : Colors.black.withValues(alpha: 0.5),
@@ -252,13 +262,16 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
       itemCount: fieldCards.length,
       itemBuilder: (context, index) {
         final card = fieldCards[index];
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(bottom: screenHeight * 0.01),
           child: Card(
             margin: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
@@ -268,55 +281,64 @@ class HomeView extends StatelessWidget {
             elevation: 0,
             color: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 20),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.05,
+                vertical: screenHeight * 0.02,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
-                        width: 35,
-                        height: 35,
+                        width: screenWidth * 0.09,
+                        height: screenWidth * 0.09,
                         decoration: BoxDecoration(
                           color: const Color(0xFF187B4D).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10.89),
                         ),
                       ),
-                      const SizedBox(width: 7),
-                      Text(
-                        card.name,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
+                      SizedBox(width: screenWidth * 0.02),
+                      Expanded(
+                        child: Text(
+                          card.name,
+                          style: GoogleFonts.dmSans(
+                            fontSize: screenWidth * 0.035,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: screenHeight * 0.01),
                   Text(
                     '${card.som}\n${card.ph}\n${card.date}',
                     style: GoogleFonts.dmSans(
-                      fontSize: 12,
+                      fontSize: screenWidth * 0.03,
                       fontWeight: FontWeight.normal,
                       color: const Color(0xFF908BA6),
-                      height: 20 / 12,
+                      height: 1.67,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: screenHeight * 0.01),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
                         'View details',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: screenWidth * 0.03,
                           fontWeight: FontWeight.normal,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_downward, size: 18, color: Colors.black),
+                      SizedBox(width: screenWidth * 0.01),
+                      Icon(
+                        Icons.arrow_downward,
+                        size: screenWidth * 0.045,
+                        color: Colors.black,
+                      ),
                     ],
                   ),
                 ],
@@ -364,12 +386,14 @@ class ListViewPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Center(
       child: Text(
         'List Screen\n(Coming soon)',
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(
-          fontSize: 18,
+          fontSize: screenWidth * 0.045,
           fontWeight: FontWeight.w500,
           color: const Color(0xFF908BA6),
         ),

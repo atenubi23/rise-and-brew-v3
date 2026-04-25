@@ -16,7 +16,7 @@ class Classifier {
   Future<void> load() async {
     try {
       // 1. Siguraduhin na ang TFLite model name ay tama rin (halimbawa: som_model.tflite)
-      _interpreter = await Interpreter.fromAsset('assets/best_soil_modelv4.tflite');
+      _interpreter = await Interpreter.fromAsset('assets/som_model.tflite');
 
       // 2. I-update ang filename dito mula 'labels.txt' patungong 'som_labels.txt'
       final labelsData = await rootBundle.loadString('assets/som_labels.txt');
